@@ -660,7 +660,7 @@ Now, based on the rules above and the following contexts, answer the user's ques
 
 const App: React.FC = () => {
     const [query, setQuery] = useState<string>('');
-    const [customInstructions, setCustomInstructions] = useState<string>('Please format the response in a highly organized manner. Use tables to present data whenever it is suitable, such as for lists of prices or services.');
+    const [customInstructions, setCustomInstructions] = useState<string>('Please format the response in a highly organized manner. Use tables to present data whenever it is suitable, such as for lists of prices or services. if both answers are identical in terms of (item name and price) kindly mention only one of them ');
     const [answer, setAnswer] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
