@@ -1,12 +1,319 @@
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useEffect } from 'react';
 import QueryInput from './components/QueryInput';
 import ResponseDisplay from './components/ResponseDisplay';
 import { queryPdfContent } from './services/geminiService';
 import { DocumentIcon, SparklesIcon, ChevronDownIcon } from './components/icons';
 
-const PRELOADED_PDF_NAME = 'EHA_pricelist.pdf';
+const PRELOADED_PDF_NAME_V1 = 'EHA_pricelist_general.pdf';
+const PRELOADED_PDF_NAME_V2 = 'EHA_pricelist_portsaid_dec2024.pdf';
 
-const PRELOADED_PDF_TEXT = `
+const PRELOADED_PDF_TEXT_V2 = `
+لائحة الأسعار الطبية
+فرع بورسعيد
+تاريخ الإصدار: ديسمبر 2024
+---
+خدمات العلاج الإشعاعي
+الرقم الكودي,السعر,البيان
+//,1800,تخطيط علاج إشعاعي محاكي 2D
+//,2150,تخطيط علاج إشعاعي محاكي 3D
+//,1450,خطة علاجية 2D
+//,3600,خطة علاجية 3D
+//,6000,خطة علاجية IMRT
+//,3600,أسبوع الكترون EB
+//,2150,أسبوع علاج 2D
+//,4200,أسبوع علاج 3D
+//,7200,أسبوع علاج IMRT
+//,2150,قناع رأس
+//,2400,قناع رأس/ رقبة
+//,3950,قناع ثدي
+//,4200,قناع بطن حوض
+//,600,مرتبة (Mattress)
+//,1800,جلسة مكثفة
+//,7200,إشعاع داخلي (HDR) للجلسة الواحدة بالتخدير
+//,4800,إشعاع داخلي (HDR) للجلسة الواحدة بدون تخدير
+//,1450,فحص + المخدر (EUA)
+//,3000,العلاج الإشعاعي ثلاثي الأبعاد (أسبوع واحد)
+//,12000,العلاج الإشعاعي ثلاثي الأبعاد (أكثر من أسبوع)
+//,5400,العلاج الإشعاعي ثنائي الأبعاد (أكثر من ثلاثة أسابيع)
+//,4200,العلاج الإشعاعي ثنائي الأبعاد (أقل من ثلاثة أسابيع)
+---
+خدمات المعمل
+تحاليل الدم والكيمياء
+الرقم الكودي,السعر,البيان
+//,3600,حسابات الفيزياء
+//,1800,الماسك
+//,500,سيمليتور باستخدام الأشعة المقطعية ثنائي الأبعاد
+//,950,أشعة مقطعية تخطيطية بدون صبغة - ثلاثي الأبعاد
+السعر,التحليل
+75,CBC
+50,Count Reticulocyte
+50,ESR
+50,Group Blood
+50,Factor Rh
+75,Test Coomb's Direct
+75,Test Coomb's Indirect
+50,Time Bleeding
+50,Time Clotting
+75,Time Prothrombin
+75,INR
+75,Time Thromboplastin Partial
+100,Fibrinogen
+200,D-Dimer
+200,Electrophoresis Hemoglobin
+100,G6PD
+100,Fragility Osmotic
+100,Test Cell Sickle
+---
+السعر,التحليل
+50,Parasite Malaria
+50,Filariasis
+50,Leishmania
+300,Aspiration Marrow Bone
+500,Biopsy Marrow Bone
+50,Fasting Glucose
+50,Random Glucose
+50,PP 2hrs Glucose
+150,samples 3 GTT
+250,samples 5 GTT
+150,HbA1c
+50,Urea
+50,Creatinine
+50,Acid Uric
+50,Sodium
+50,Potassium
+50,Calcium
+50,Phosphorus
+50,Magnesium
+75,Iron
+100,TIBC
+200,Ferritin
+50,Total Bilirubin
+50,Direct Bilirubin
+50,SGOT
+50,SGPT
+50,Phosphatase Alkaline
+50,GGT
+50,Protein Total
+---
+السعر,التحليل
+50,Albumin
+50,Globulin
+50,Ratio A/G
+75,Amylase
+75,Lipase
+75,LDH
+75,CPK
+100,CPK-MB
+200,I Troponin
+200,T Troponin
+100,CK-MB
+50,Cholesterol
+50,Triglycerides
+75,HDL
+75,LDL
+75,VLDL
+50,Ratio Cholesterol/HDL
+200,Profile Lipid
+150,TSH
+150,T3 Free
+150,T4 Free
+150,T3 Total
+150,T4 Total
+200,Thyroglobulin
+200,Anti-TPO
+200,Anti-Thyroglobulin
+200,Calcitonin
+200,PTH
+200,D Vitamin
+---
+السعر,التحليل
+200,B12 Vitamin
+200,Acid Folic
+200,Total PSA
+200,Free PSA
+200,125 CA
+200,3-15 CA
+200,9-19 CA
+200,CEA
+200,AFP
+200,HCG Beta
+150,FSH
+150,LH
+150,Prolactin
+150,Estradiol
+150,Progesterone
+150,Testosterone
+150,Cortisol
+200,Insulin
+200,C-Peptide
+200,ANA
+200,dsDNA
+200,ANCA
+100,RF
+200,Anti-CCP
+75,ASOT
+75,CRP
+75,Test Widal
+75,Brucella
+75,VDRL
+---
+السعر,التحليل
+100,TPHA
+200,HIV
+150,HBsAg
+150,Ab HCV
+200,IgM HAV
+200,IgM HEV
+200,IgM EBV
+200,IgM CMV
+200,IgM Rubella
+200,IgM Toxoplasma
+150,Ab Pylori Helicobacter
+50,Analysis Stool
+50,Analysis Urine
+50,Urine Test Pregnancy
+50,Stool Blood Occult
+100,Analysis Semen
+100,Analysis CSF
+100,Analysis Fluid Pleural
+100,Analysis Fluid Ascitic
+100,Analysis Fluid Synovial
+200,(Any Sensitivity and Culture Sample)
+100,Smear AFB
+50,Stain Gram
+50,KOH
+50,Ink India
+300,Culture Blood
+200,Culture Urine
+200,Culture Stool
+---
+السعر,التحليل
+200,Culture Sputum
+200,Culture Wound
+500,PCR TB
+500,DNA HBV
+500,RNA HCV
+500,RNA HIV
+500,DNA CMV
+500,DNA EBV
+الملاحظات
+- تضاف نسبة 10% خدمة على إجمالي بنود الفاتورة الداخلي ما عدا بندي الأدوية والمستلزمات. - في حالة طلب تحاليل إضافية غير مدرجة في اللائحة يتم احتساب سعرها حسب التكلفة الفعلية بالإضافة إلى 20% رسوم خدمة. - أسعار التحاليل قابلة للزيادة نتيجة زيادة تكاليف الخامات المستخدمة لتقديم هذه الخدمات. - يتم احتساب رسوم نقل العينات من خارج المستشفى 100 جنيه داخل المدينة و 200 جنيه خارج المدينة.
+صفقات متنوعة
+السعر,الصفقة
+1500,صفقة فحص شامل للرجال
+1800,صفقة فحص شامل للنساء
+1000,صفقة فحص قبل الزواج
+500,صفقة فحص الغدة الدرقية
+300,صفقة فحص السكر
+800,صفقة فحص الكبد
+600,صفقة فحص الكلى
+200,صفقة فحص الدهون
+1000,صفقة فحص المناعة
+1500,صفقة فحص الأورام
+500,صفقة فحص الحمل
+---
+الاتفاقيات الشاملة للقسطرة القلبية
+السعر,النوع
+6000,قسطرة قلب تشخيصية
+10000,قسطرة قلب علاجية (بالون)
+15000,قسطرة قلب علاجية (دعامة واحدة)
+20000,قسطرة قلب علاجية (دعامتان)
+25000,قسطرة قلب علاجية (ثلاث دعامات)
+ملاحظات
+- الأسعار لا تشمل سعر الدعامات أو البالونات. - تضاف 10% رسوم خدمة. - في حالة استخدام دعامات مخدرة تضاف 20% إضافية.
+صفقات زراعة الأعضاء
+السعر,النوع
+100000,زراعة كلى
+150000,زراعة كبد
+200000,زراعة قلب
+180000,زراعة رئة
+80000,زراعة نخاع
+ملاحظات
+- الأسعار تشمل الإقامة لمدة 10 أيام. - لا تشمل الأدوية المناعية.
+خدمات القسطرة المخية
+السعر,النوع
+8000,قسطرة مخ تشخيصية
+20000,قسطرة مخ علاجية (سد تمدد)
+25000,قسطرة مخ علاجية (دعامة)
+---
+صفقات العمليات الجراحية (تخصصات مختلفة)
+الجراحة العامة
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,استئصال الزائد الدودية
+7000,14000,كبرى,استئصال المرارة بالمنظار
+4000,8000,صغرى,إصلاح فتق إربي
+2000,4000,بسيطة,استئصال بواسير
+1500,3000,بسيطة,استئصال كيس دهني
+750,1500,بسيطة,تنظيف جرح
+7000,14000,كبرى,استئصال الطحال
+8000,16000,متقدمة,استئصال المعدة جزئي
+8000,16000,متقدمة,استئصال القولون
+7000,14000,كبرى,إصلاح انسداد أمعاء
+جراحة المخ والأعصاب
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+8000,16000,متقدمة,استئصال ورم مخ
+7000,14000,كبرى,إصلاح كسر جمجمة
+5000,10000,متوسطة,تركيب صمام للدماغ
+7000,14000,كبرى,جراحة العمود الفقري
+5000,10000,متوسطة,إزالة قرص منفتق
+---
+جراحة القلب والصدر
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+8000,16000,متقدمة,جراحة قلب مفتوح
+7000,14000,كبرى,استئصال رئة جزئي
+5000,10000,متوسطة,إصلاح ثقب قلب
+جراحة العظام
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,تثبيت كسر
+7000,14000,كبرى,استبدال مفصل ركبة
+8000,16000,متقدمة,جراحة العمود الفقري
+5000,10000,متوسطة,إصلاح رباط صليبي
+جراحة الأنف والأذن والحنجرة
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+4000,8000,صغرى,استئصال اللوز
+5000,10000,متوسطة,جراحة الجيوب
+2000,4000,بسيطة,تركيب أنبوب أذن
+جراحة الأوعية الدموية
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,إصلاح دوالي
+7000,14000,كبرى,تركيب دعامة شريان
+جراحة الرمد
+---
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,إزالة المياه البيضاء
+4000,8000,صغرى,جراحة الليزر
+جراحة المسالك
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,تفتيت حصوات
+7000,14000,كبرى,استئصال البروستاتا
+جراحة الأطفال
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+4000,8000,صغرى,إصلاح فتق
+8000,16000,متقدمة,جراحة قلب أطفال
+جراحة التجميل
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+7000,14000,كبرى,شد وجه
+5000,10000,متوسطة,شفط دهون
+جراحة النسا
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,ولادة قيصرية
+7000,14000,كبرى,استئصال رحم
+جراحة الوجه والفكين
+---
+السعر خاصة,السعر مستشفى,درجة المهارة,العملية
+5000,10000,متوسطة,إصلاح فك مكسور
+7000,14000,كبرى,جراحة تجميل فك
+خدمات السيارة المتنقلة
+السعر,الخدمة
+500,كشف منزلي
+200 + سعر التحليل,تحاليل منزلية
+300 + سعر الأشعة,أشعة منزلية
+الملاحظات العامة
+- جميع الأسعار بالجنيه المصري. - الأسعار قابلة للتغيير دون إشعار مسبق. - يرجى الاستعلام عن التوافر والتفاصيل الإضافية من الهيئة. - الهيئة غير مسئولة عن أي تغييرات في الأسعار بسبب التكاليف.
+`;
+
+const PRELOADED_PDF_TEXT_V1 = `
 الصفحة المحتوي المحتوي الصفحة
 1 المقدمة خدمات عيادة العظام 23
 2 القواعد العامة خدمات عيادة األنف واألذن والحنجرة 24
@@ -330,7 +637,7 @@ URINE and STOOLS
 فرع بورسعید (110) لائحة اسعار غیر المنتفعین - الاصدار الثالث
 `;
 
-const defaultInstructions = `You are an expert assistant for the EHA (Egyptian Health Authority) pricelist. Your primary role is to answer questions based ONLY on the provided document content.
+const INTERNAL_INSTRUCTIONS = `You are an expert assistant for the EHA (Egyptian Health Authority) pricelist. Your primary role is to answer questions based ONLY on the provided document content.
 
 **Strict Rules to Follow:**
 1.  **Default Language:** You MUST answer in Arabic, unless the user's query is explicitly in a different language.
@@ -352,13 +659,21 @@ Now, based on the rules above and the following context, answer the user's quest
 
 
 const App: React.FC = () => {
-    const [pdfText] = useState<string>(PRELOADED_PDF_TEXT);
+    const [selectedPdf, setSelectedPdf] = useState<'v1' | 'v2'>('v2');
+    const [pdfText, setPdfText] = useState<string>(PRELOADED_PDF_TEXT_V2);
     const [query, setQuery] = useState<string>('');
-    const [customInstructions, setCustomInstructions] = useState<string>(defaultInstructions);
+    const [customInstructions, setCustomInstructions] = useState<string>('');
     const [answer, setAnswer] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [showInstructions, setShowInstructions] = useState<boolean>(false);
+
+    useEffect(() => {
+        setPdfText(selectedPdf === 'v1' ? PRELOADED_PDF_TEXT_V1 : PRELOADED_PDF_TEXT_V2);
+        setQuery('');
+        setAnswer('');
+        setError(null);
+    }, [selectedPdf]);
 
     const handleQuerySubmit = useCallback(async () => {
         if (!query.trim() || !pdfText) return;
@@ -368,7 +683,8 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            const result = await queryPdfContent(pdfText, query, customInstructions);
+            const finalInstructions = `${INTERNAL_INSTRUCTIONS}\n\n${customInstructions}`;
+            const result = await queryPdfContent(pdfText, query, finalInstructions);
             setAnswer(result);
         } catch (err) {
             setError('Failed to get an answer. Please try again.');
@@ -378,6 +694,8 @@ const App: React.FC = () => {
         }
     }, [query, pdfText, customInstructions]);
     
+    const currentPdfName = selectedPdf === 'v1' ? PRELOADED_PDF_NAME_V1 : PRELOADED_PDF_NAME_V2;
+
     return (
         <div className="min-h-screen text-gray-200 flex flex-col items-center p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-3xl">
@@ -399,9 +717,22 @@ const App: React.FC = () => {
                         <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 flex justify-between items-center shadow-lg">
                             <div className="flex items-center space-x-3 overflow-hidden">
                                 <DocumentIcon className="h-6 w-6 text-indigo-400 flex-shrink-0" />
-                                <span className="font-medium text-gray-300 truncate" title={PRELOADED_PDF_NAME}>{PRELOADED_PDF_NAME}</span>
+                                <span className="font-medium text-gray-300 truncate" title={currentPdfName}>{currentPdfName}</span>
                             </div>
-                            <span className="text-sm font-semibold text-gray-500">Default Source</span>
+                            <div className="flex rounded-lg bg-gray-900/60 p-1 border border-gray-700/50 text-sm">
+                                <button
+                                    onClick={() => setSelectedPdf('v2')}
+                                    className={`px-3 py-1 rounded-md transition-all text-xs sm:text-sm ${selectedPdf === 'v2' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                                >
+                                    Port Said (New)
+                                </button>
+                                <button
+                                    onClick={() => setSelectedPdf('v1')}
+                                    className={`px-3 py-1 rounded-md transition-all text-xs sm:text-sm ${selectedPdf === 'v1' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                                >
+                                    General (Old)
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="space-y-2">
@@ -411,7 +742,7 @@ const App: React.FC = () => {
                                 aria-expanded={showInstructions}
                             >
                                 <label className="font-medium text-gray-300 cursor-pointer">
-                                    Custom Instructions
+                                    Custom Instructions (Optional)
                                 </label>
                                 <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${showInstructions ? 'rotate-180' : ''}`} />
                             </div>
@@ -423,7 +754,7 @@ const App: React.FC = () => {
                                         onChange={(e) => setCustomInstructions(e.target.value)}
                                         placeholder="e.g., Answer in a friendly tone, summarize the key points..."
                                         className="w-full p-3 text-gray-200 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm text-sm"
-                                        rows={18}
+                                        rows={8}
                                         disabled={isGenerating}
                                     />
                                 </div>
@@ -434,7 +765,7 @@ const App: React.FC = () => {
                             query={query}
                             setQuery={setQuery}
                             onSubmit={handleQuerySubmit}
-                            isDisabled={isGenerating}
+                            isDisabled={isGenerating || !pdfText}
                         />
 
                         {isGenerating && (
