@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import QueryInput from './components/QueryInput';
 import ResponseDisplay from './components/ResponseDisplay';
 import { queryPdfContent } from './services/geminiService';
@@ -637,30 +637,29 @@ URINE and STOOLS
 فرع بورسعید (110) لائحة اسعار غیر المنتفعین - الاصدار الثالث
 `;
 
-const INTERNAL_INSTRUCTIONS = `You are an expert assistant for the EHA (Egyptian Health Authority) pricelist. Your primary role is to answer questions based ONLY on the provided document content.
+const INTERNAL_INSTRUCTIONS = `You are an expert assistant for the EHA (Egyptian Health Authority). Your primary role is to answer questions by comparing information from TWO provided pricelist documents: "EHA_pricelist_general.pdf" (the original/general pricelist) and "EHA_pricelist_portsaid_dec2024.pdf" (the Port Said branch pricelist).
 
-**Strict Rules to Follow:**
-1.  **Default Language:** You MUST answer in Arabic, unless the user's query is explicitly in a different language.
-2.  **Exclusive Source:** Your answers must be based entirely and exclusively on the "CONTEXT" from the PDF. Do not use any external knowledge.
-3.  **Search & Reasoning Strategy:**
-    *   **Keyword Flexibility:** The user's query might not be an exact keyword match. Search for synonyms, related terms, and contextual variations. For example, "القسطرة القلبية" (cardiac catheterization) relates to "قسطرة" (catheterization) and "القلب" (heart).
-    *   **Information Synthesis for Open-Ended Questions:** When asked a broad or open-ended question (e.g., "Tell me about...", "What are the details of..."), you must synthesize information from across the document.
-    *   **Follow Page References:** If you find a topic mentioned in the index or table of contents with a page number (e.g., "Comprehensive Agreements... page 60"), you MUST navigate to the content for that page number and summarize the relevant details found there. This is key to answering questions about topics.
-    *   **Comprehensive Search:** A service or item can appear multiple times. You must search the entire document and list ALL relevant instances.
-4.  **Page Number Citation (Crucial):**
-    *   For every specific piece of information or price you list, you MUST cite the page number it came from.
-    *   **How to find the page number:** The page number is the number physically printed at the bottom of the page content, often in a format like "فرع بورسعید (X)". This is the document's internal numbering, not the PDF file's sequence number.
-5.  **Accuracy with Pricing:** Pricing is the most critical information. Be extremely accurate and careful when quoting any costs or numbers.
-6.  **Formatting:** When you find multiple results, list them in a clear, bulleted format. For summaries, use clear paragraphs.
-7.  **Information Not Found:** Only if, after following all the search and reasoning strategies above, you genuinely cannot find any relevant information, you MUST reply with only this exact phrase: "المعلومات المطلوبة غير متوفرة في المستند المقدم."
+**Strict Comparison and Answering Rules:**
+1.  **Source of Truth:** You are provided with two contexts, CONTEXT_GENERAL and CONTEXT_PORTSAID. Your answers MUST be based entirely and exclusively on these two contexts. Do not use any external knowledge.
+2.  **Default Language:** You MUST answer in Arabic, unless the user's query is explicitly in a different language.
+3.  **Core Task - Compare and Synthesize:** For every question, you must:
+    a. Search for the relevant information in BOTH documents.
+    b. Compare the findings from both sources.
+4.  **Handling Discrepancies:**
+    *   **Pricing Difference:** If you find a price for the same item in both documents and the prices are different, you MUST state the price from the **General pricelist (CONTEXT_GENERAL)** and mention that this is the definitive price as per the rules. You can optionally mention the Port Said price for context.
+    *   **Content Difference:** If the information (other than pricing) is significantly different or contradictory between the two documents, you MUST present the information from BOTH documents clearly. State which information comes from which document (e.g., "In the General pricelist it says...", "However, in the Port Said pricelist...").
+    *   **Information in One Document Only:** If information is found in only one document, present that information and state which document it was found in.
+5.  **Page Number Citation (Crucial):**
+    *   For every specific piece of information or price you list, you MUST cite the page number and the source document it came from (e.g., "page 5 of the General pricelist").
+    *   The page number is the number physically printed at the bottom of the page content.
+6.  **Information Not Found:** If, after searching both documents thoroughly, you cannot find any relevant information, you MUST reply with only this exact phrase: "المعلومات المطلوبة غير متوفرة في المستندات المقدمة."
+7.  **Accuracy & Formatting:** Be extremely accurate with all details, especially pricing. Use clear, bulleted lists for multiple results and well-structured paragraphs for explanations.
 
 ---
-Now, based on the rules above and the following context, answer the user's question.`;
+Now, based on the rules above and the following contexts, answer the user's question.`;
 
 
 const App: React.FC = () => {
-    const [selectedPdf, setSelectedPdf] = useState<'v1' | 'v2'>('v2');
-    const [pdfText, setPdfText] = useState<string>(PRELOADED_PDF_TEXT_V2);
     const [query, setQuery] = useState<string>('');
     const [customInstructions, setCustomInstructions] = useState<string>('');
     const [answer, setAnswer] = useState<string>('');
@@ -668,15 +667,8 @@ const App: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [showInstructions, setShowInstructions] = useState<boolean>(false);
 
-    useEffect(() => {
-        setPdfText(selectedPdf === 'v1' ? PRELOADED_PDF_TEXT_V1 : PRELOADED_PDF_TEXT_V2);
-        setQuery('');
-        setAnswer('');
-        setError(null);
-    }, [selectedPdf]);
-
     const handleQuerySubmit = useCallback(async () => {
-        if (!query.trim() || !pdfText) return;
+        if (!query.trim()) return;
 
         setIsGenerating(true);
         setAnswer('');
@@ -684,7 +676,12 @@ const App: React.FC = () => {
 
         try {
             const finalInstructions = `${INTERNAL_INSTRUCTIONS}\n\n${customInstructions}`;
-            const result = await queryPdfContent(pdfText, query, finalInstructions);
+            const result = await queryPdfContent(
+                PRELOADED_PDF_TEXT_V1,
+                PRELOADED_PDF_TEXT_V2,
+                query,
+                finalInstructions
+            );
             setAnswer(result);
         } catch (err) {
             setError('Failed to get an answer. Please try again.');
@@ -692,10 +689,8 @@ const App: React.FC = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [query, pdfText, customInstructions]);
+    }, [query, customInstructions]);
     
-    const currentPdfName = selectedPdf === 'v1' ? PRELOADED_PDF_NAME_V1 : PRELOADED_PDF_NAME_V2;
-
     return (
         <div className="min-h-screen text-gray-200 flex flex-col items-center p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-3xl">
@@ -714,24 +709,14 @@ const App: React.FC = () => {
 
                 <main>
                     <div className="space-y-6">
-                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-lg gap-3">
                             <div className="flex items-center space-x-3 overflow-hidden">
                                 <DocumentIcon className="h-6 w-6 text-indigo-400 flex-shrink-0" />
-                                <span className="font-medium text-gray-300 truncate" title={currentPdfName}>{currentPdfName}</span>
+                                <span className="font-medium text-gray-300">Active Documents</span>
                             </div>
-                            <div className="flex rounded-lg bg-gray-900/60 p-1 border border-gray-700/50 text-sm">
-                                <button
-                                    onClick={() => setSelectedPdf('v2')}
-                                    className={`px-3 py-1 rounded-md transition-all text-xs sm:text-sm ${selectedPdf === 'v2' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-700/50'}`}
-                                >
-                                    Port Said (New)
-                                </button>
-                                <button
-                                    onClick={() => setSelectedPdf('v1')}
-                                    className={`px-3 py-1 rounded-md transition-all text-xs sm:text-sm ${selectedPdf === 'v1' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-700/50'}`}
-                                >
-                                    General (Old)
-                                </button>
+                            <div className="flex flex-col sm:items-end text-xs text-gray-400 pl-9 sm:pl-0">
+                                <span className="bg-gray-700/50 px-2 py-1 rounded" title={PRELOADED_PDF_NAME_V1}>{PRELOADED_PDF_NAME_V1} (General)</span>
+                                <span className="bg-gray-700/50 px-2 py-1 rounded mt-1" title={PRELOADED_PDF_NAME_V2}>{PRELOADED_PDF_NAME_V2} (Port Said)</span>
                             </div>
                         </div>
                         
@@ -765,7 +750,7 @@ const App: React.FC = () => {
                             query={query}
                             setQuery={setQuery}
                             onSubmit={handleQuerySubmit}
-                            isDisabled={isGenerating || !pdfText}
+                            isDisabled={isGenerating}
                         />
 
                         {isGenerating && (

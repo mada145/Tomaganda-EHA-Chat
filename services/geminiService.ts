@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -10,15 +11,25 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-export const queryPdfContent = async (context: string, question: string, customInstructions: string): Promise<string> => {
+export const queryPdfContent = async (
+    contextGeneral: string,
+    contextPortSaid: string,
+    question: string,
+    systemInstructions: string
+): Promise<string> => {
     const model = 'gemini-2.5-flash';
 
     const finalPrompt = `
-        ${customInstructions.trim()}
+        ${systemInstructions.trim()}
 
-        CONTEXT:
+        CONTEXT_GENERAL:
         ---
-        ${context}
+        ${contextGeneral}
+        ---
+
+        CONTEXT_PORTSAID:
+        ---
+        ${contextPortSaid}
         ---
 
         QUESTION: ${question}
