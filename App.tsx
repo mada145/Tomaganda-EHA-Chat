@@ -771,3 +771,11 @@ const App: React.FC = () => {
                     )}
                 </main>
             </div>
+            <footer className="text-center mt-auto pt-8 text-gray-500 text-sm">
+                <p>© 2025 k8ng’s Domain. All Rights Reserved.</p>
+            </footer>
+        </div>
+    );
+};
+
+export default App;
