@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import QueryInput from './components/QueryInput';
 import ResponseDisplay from './components/ResponseDisplay';
@@ -661,7 +660,7 @@ Now, based on the rules above and the following contexts, answer the user's ques
 
 const App: React.FC = () => {
     const [query, setQuery] = useState<string>('');
-    const [customInstructions, setCustomInstructions] = useState<string>('');
+    const [customInstructions, setCustomInstructions] = useState<string>('Please format the response in a highly organized manner. Use tables to present data whenever it is suitable, such as for lists of prices or services.');
     const [answer, setAnswer] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -772,11 +771,3 @@ const App: React.FC = () => {
                     )}
                 </main>
             </div>
-            <footer className="text-center mt-auto pt-8 text-gray-500 text-sm">
-                <p>© 2025 k8ng’s Domain. All Rights Reserved.</p>
-            </footer>
-        </div>
-    );
-};
-
-export default App;
