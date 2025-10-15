@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SendIcon, SpinnerIcon } from './icons';
 
@@ -23,6 +22,7 @@ const QueryInput: React.FC<QueryInputProps> = ({ query, setQuery, onSubmit, isDi
     return (
         <div className="relative">
             <textarea
+                dir="auto"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}

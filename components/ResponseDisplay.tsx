@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SparklesIcon } from './icons';
 
@@ -13,7 +12,9 @@ const ResponseDisplay: React.FC<ResponseDisplayProps> = ({ answer }) => {
                 <SparklesIcon className="w-6 h-6 mr-2 text-indigo-400" />
                 Answer
             </h2>
-            <div className="prose prose-invert prose-p:text-gray-300 prose-strong:text-gray-100 whitespace-pre-wrap leading-relaxed">
+            <div 
+                dir="auto" 
+                className="prose prose-invert prose-p:text-gray-300 prose-strong:text-gray-100 whitespace-pre-wrap leading-relaxed">
                 {answer}
             </div>
         </div>
