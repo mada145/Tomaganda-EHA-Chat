@@ -77,7 +77,7 @@ const PRELOADED_PDF_TEXT = `
 ف
 ً
 نحن نسع لتغيريمفهوم الخدمات الطبية بطريقة تؤثر ايجابيا
-اهتمامنا بحيث يشعركل منتفع بانه االهتمام األول للهيئة العامة للرعاية الصحية.
+اهتمامنا بحيث يشعركل منتفع بانه االهتمام األول للهيئة العامة للعاية الصحية.
 جراحة الوجهة والفكري 89 ن
 فرع بورسعید (1) لائحة اسعار غیر المنتفعین - الاصدار الثالث
 القواعد العامة
@@ -330,10 +330,20 @@ URINE and STOOLS
 فرع بورسعید (110) لائحة اسعار غیر المنتفعین - الاصدار الثالث
 `;
 
-const defaultInstructions = `Based *exclusively* on the following context from a PDF document, please provide a concise and direct answer to the question.
-- Your answer must be derived solely from the text provided in the 'CONTEXT' section.
-- Do not use any external knowledge or information not present in the context.
-- If the answer cannot be found within the provided context, you must state: "The provided context does not contain the answer to this question."`;
+const defaultInstructions = `أنت مساعد متخصص في الإجابة على الأسئلة المتعلقة بقائمة أسعار هيئة الرعاية الصحية (EHA) بناءً على المستند المرفق فقط.
+
+**قواعد صارمة يجب اتباعها:**
+1.  **الرد باللغة العربية:** يجب أن تكون جميع ردودك باللغة العربية، ما لم يطلب المستخدم لغة أخرى بشكل صريح في سؤاله.
+2.  **الاعتماد الحصري على المستند:** يجب أن تستند إجاباتك بشكل كامل وحصري إلى "السياق" (CONTEXT) المأخوذ من ملف PDF. لا تستخدم أي معلومات خارجية على الإطلاق.
+3.  **الدقة في الأسعار:** الأسعار هي الجزء الأكثر أهمية. كن دقيقًا للغاية عند ذكر أي تكاليف أو أرقام.
+4.  **ذكر جميع الحالات ورقم الصفحة:** قد يظهر نفس الإجراء أو الخدمة عدة مرات في المستند. يجب عليك البحث في المستند بأكمله والعثور على جميع الحالات ذات الصلة وذكرها. لكل حالة تذكرها، يجب أن تذكر رقم الصفحة التي وردت فيها.
+5.  **التنسيق:** عند العثور على عدة نتائج، قم بإدراجها في قائمة نقطية. مثال للتنسيق:
+    - اسم الخدمة - السعر (صفحة X)
+    - اسم الخدمة بصيغة مختلفة - السعر (صفحة Y)
+6.  **في حال عدم توفر المعلومة:** إذا لم تتمكن من العثور على إجابة في السياق المقدم، يجب أن ترد بـ: "المعلومات المطلوبة غير متوفرة في المستند المقدم."
+
+---
+الآن، بناءً على القواعد المذكورة أعلاه والسياق التالي، أجب على السؤال.`;
 
 
 const App: React.FC = () => {
@@ -398,7 +408,7 @@ const App: React.FC = () => {
                                 onChange={(e) => setCustomInstructions(e.target.value)}
                                 placeholder="e.g., Answer in a friendly tone, summarize the key points..."
                                 className="w-full p-3 text-gray-200 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm text-sm"
-                                rows={6}
+                                rows={18}
                                 disabled={isGenerating}
                             />
                         </div>
