@@ -27,7 +27,7 @@ const QueryInput: React.FC<QueryInputProps> = ({ query, setQuery, onSubmit, isDi
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask a question about the PDF content..."
-                className="w-full p-4 pr-16 text-gray-200 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm"
+                className="w-full p-4 pr-16 text-gray-200 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm"
                 rows={3}
                 disabled={isDisabled}
             />

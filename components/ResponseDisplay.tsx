@@ -8,7 +8,7 @@ interface ResponseDisplayProps {
 
 const ResponseDisplay: React.FC<ResponseDisplayProps> = ({ answer }) => {
     return (
-        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-lg animate-fade-in">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 shadow-lg animate-fade-in">
             <h2 className="text-xl font-bold text-gray-200 flex items-center mb-4">
                 <SparklesIcon className="w-6 h-6 mr-2 text-indigo-400" />
                 Answer

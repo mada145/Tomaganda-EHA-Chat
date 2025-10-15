@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import QueryInput from './components/QueryInput';
 import ResponseDisplay from './components/ResponseDisplay';
 import { queryPdfContent } from './services/geminiService';
-import { DocumentIcon, SparklesIcon } from './components/icons';
+import { DocumentIcon, SparklesIcon, ChevronDownIcon } from './components/icons';
 
 const PRELOADED_PDF_NAME = 'EHA_pricelist.pdf';
 
@@ -358,6 +358,7 @@ const App: React.FC = () => {
     const [answer, setAnswer] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [showInstructions, setShowInstructions] = useState<boolean>(false);
 
     const handleQuerySubmit = useCallback(async () => {
         if (!query.trim() || !pdfText) return;
@@ -378,16 +379,16 @@ const App: React.FC = () => {
     }, [query, pdfText, customInstructions]);
     
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center p-4 sm:p-6 lg:p-8 font-sans">
+        <div className="min-h-screen text-gray-200 flex flex-col items-center p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-3xl">
                 <header className="text-center mb-8">
                     <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-600">
                         Tomaganda EHA Chat
                     </h1>
-                    <p className="mt-4 text-lg text-gray-400">
+                    <p className="mt-4 text-lg text-gray-300">
                         Get pricing and quotations for non-beneficiaries from the EHA pricelist.
                     </p>
-                    <div className="mt-2 text-sm text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 rounded-md px-3 py-2 max-w-xl mx-auto">
+                    <div className="mt-2 text-sm text-yellow-300 bg-yellow-500/10 backdrop-blur-sm border border-yellow-700/50 rounded-xl px-3 py-2 max-w-xl mx-auto">
                         <p>Notice: We are using AI, so kindly double-check the answer to avoid any mistakes.</p>
                         <p className="mt-1">If you get no answers or errors, just try again. AI is not perfect yet!</p>
                     </div>
@@ -395,7 +396,7 @@ const App: React.FC = () => {
 
                 <main>
                     <div className="space-y-6">
-                        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 flex justify-between items-center shadow-lg">
                             <div className="flex items-center space-x-3 overflow-hidden">
                                 <DocumentIcon className="h-6 w-6 text-indigo-400 flex-shrink-0" />
                                 <span className="font-medium text-gray-300 truncate" title={PRELOADED_PDF_NAME}>{PRELOADED_PDF_NAME}</span>
@@ -404,18 +405,29 @@ const App: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
-                            <label htmlFor="custom-instructions" className="block text-sm font-medium text-gray-400">
-                                Custom Instructions
-                            </label>
-                            <textarea
-                                id="custom-instructions"
-                                value={customInstructions}
-                                onChange={(e) => setCustomInstructions(e.target.value)}
-                                placeholder="e.g., Answer in a friendly tone, summarize the key points..."
-                                className="w-full p-3 text-gray-200 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm text-sm"
-                                rows={18}
-                                disabled={isGenerating}
-                            />
+                             <div 
+                                onClick={() => setShowInstructions(!showInstructions)}
+                                className="flex justify-between items-center cursor-pointer bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-3 transition-all hover:bg-gray-700/50"
+                                aria-expanded={showInstructions}
+                            >
+                                <label className="font-medium text-gray-300 cursor-pointer">
+                                    Custom Instructions
+                                </label>
+                                <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${showInstructions ? 'rotate-180' : ''}`} />
+                            </div>
+                            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showInstructions ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <div className="pt-2">
+                                    <textarea
+                                        id="custom-instructions"
+                                        value={customInstructions}
+                                        onChange={(e) => setCustomInstructions(e.target.value)}
+                                        placeholder="e.g., Answer in a friendly tone, summarize the key points..."
+                                        className="w-full p-3 text-gray-200 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-shadow shadow-sm text-sm"
+                                        rows={18}
+                                        disabled={isGenerating}
+                                    />
+                                </div>
+                            </div>
                         </div>
                         
                         <QueryInput 
